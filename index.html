@@ -2,847 +2,145 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#000000">
-    <meta name="description" content="Nexus Player - Advanced Web-Based Omni-Media Suite & IPTV Player">
-    <title>Nexus Player | Omni-Media Suite</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS PLAYER - Ultimate IPTV & Stream Client</title>
     
-    <!-- PWA Manifest & App Icons -->
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <!-- External Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Third-Party CSS / Fonts -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    
-    <!-- Nexus Core CSS -->
+    <!-- Application Stylesheet -->
     <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="amoled-theme">
+<body class="amoled-theme" data-theme="amoled">
 
-    <!-- APP CONTAINER -->
-    <div id="nexus-app" class="nexus-app-container">
-
-        <!-- HEADER / NAVIGATION BAR -->
+    <div class="nexus-app-container">
+        <!-- Top Header Bar -->
         <header class="nexus-header glass-panel">
             <div class="header-left">
-                <button id="btn-toggle-sidebar" class="icon-btn" title="Toggle Navigation Bar">
+                <button id="btn-toggle-sidebar" class="icon-btn" title="Toggle Sidebar">
                     <i class="fa-solid fa-bars"></i>
                 </button>
                 <div class="brand-logo">
-                    <i class="fa-solid fa-atom logo-spin"></i>
+                    <i class="fa-solid fa-circle-notch logo-spin"></i>
                     <span class="brand-name">NEXUS<span class="highlight">PLAYER</span></span>
                 </div>
             </div>
 
             <div class="header-center">
                 <div class="search-bar-wrapper">
-                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                    <input type="text" id="global-search-input" placeholder="Search live channels, videos, movies, or presets..." autocomplete="off">
-                    <button id="btn-clear-search" class="icon-btn-small hidden"><i class="fa-solid fa-xmark"></i></button>
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="input-channel-search" placeholder="Search live channels, videos, M3U lists...">
                 </div>
             </div>
 
             <div class="header-right">
-                <button id="btn-telemetry-hud" class="icon-btn" title="Developer HUD & Telemetry">
-                    <i class="fa-solid fa-microchip"></i>
+                <button id="btn-load-m3u-modal" class="btn-primary-small" title="Load M3U Playlist">
+                    <i class="fa-solid fa-plus"></i> Load M3U/Xtream
                 </button>
-                <button id="btn-ai-assistant" class="icon-btn glow-accent" title="Nexus AI Assistant">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i>
-                </button>
-                <button id="btn-open-settings" class="icon-btn" title="Settings & Management">
+                <button id="btn-open-settings" class="icon-btn" title="Settings">
                     <i class="fa-solid fa-gear"></i>
                 </button>
             </div>
         </header>
 
-        <!-- MAIN LAYOUT WRAPPER -->
+        <!-- Main Body Layout -->
         <div class="nexus-body">
-
-            <!-- SIDE NAVIGATION / PLAYLIST DRAWER -->
-            <aside id="nexus-sidebar" class="nexus-sidebar glass-panel collapsed">
+            <!-- Sidebar Drawer -->
+            <aside id="nexus-sidebar" class="nexus-sidebar glass-panel">
                 <div class="sidebar-tabs">
-                    <button class="sidebar-tab active" data-target="tab-channels"><i class="fa-solid fa-tv"></i> IPTV</button>
-                    <button class="sidebar-tab" data-target="tab-library"><i class="fa-solid fa-folder-open"></i> Media</button>
-                    <button class="sidebar-tab" data-target="tab-epg"><i class="fa-solid fa-list-ol"></i> EPG</button>
-                    <button class="sidebar-tab" data-target="tab-favorites"><i class="fa-solid fa-star"></i> Starred</button>
+                    <button class="sidebar-tab active" data-tab="tab-iptv"><i class="fa-solid fa-tv"></i> IPTV</button>
+                    <button class="sidebar-tab" data-tab="tab-media"><i class="fa-solid fa-folder"></i> Media</button>
+                    <button class="sidebar-tab" data-tab="tab-epg"><i class="fa-solid fa-list-ol"></i> EPG</button>
+                    <button class="sidebar-tab" data-tab="tab-starred"><i class="fa-solid fa-star"></i> Starred</button>
                 </div>
 
                 <div class="sidebar-content">
-                    <!-- IPTV CHANNELS TAB -->
-                    <div id="tab-channels" class="tab-pane active">
+                    <!-- IPTV Category & Playlist View -->
+                    <div id="tab-iptv" class="tab-pane active">
                         <div class="pane-controls">
-                            <select id="category-filter-select" class="nexus-select">
-                                <option value="all">All Categories</option>
+                            <select id="select-category-filter" class="nexus-select">
+                                <option value="All">All Categories</option>
                             </select>
-                            <button id="btn-add-playlist" class="btn-primary-small"><i class="fa-solid fa-plus"></i> Load M3U/Xtream</button>
                         </div>
-                        <div id="channel-list-container" class="channel-list grid-view">
-                            <!-- Dynamic Channel Items Rendered Here -->
-                        </div>
-                    </div>
-
-                    <!-- LOCAL MEDIA LIBRARY TAB -->
-                    <div id="tab-library" class="tab-pane">
-                        <div class="pane-controls">
-                            <label for="local-file-input" class="btn-primary-small block-btn">
-                                <i class="fa-solid fa-file-video"></i> Open Storage File
-                            </label>
-                            <input type="file" id="local-file-input" accept="video/*,audio/*,.mkv,.ts" multiple class="hidden">
-                        </div>
-                        <div id="local-media-list" class="media-list">
-                            <!-- Dynamic Local Storage Files Rendered Here -->
+                        <div id="playlist-channel-container" class="channel-list">
+                            <!-- Dynamic Channel Items Inserted Here -->
                         </div>
                     </div>
 
-                    <!-- EPG TV GUIDE TAB -->
-                    <div id="tab-epg" class="tab-pane">
-                        <div id="epg-schedule-container" class="epg-container">
-                            <p class="placeholder-text">Load XMLTV EPG Source to View Schedule.</p>
+                    <!-- Direct Media / Stream Loader View -->
+                    <div id="tab-media" class="tab-pane">
+                        <div class="control-card">
+                            <h4><i class="fa-solid fa-link"></i> Load Direct Stream URL</h4>
+                            <input type="text" id="input-direct-stream-url" class="nexus-input" placeholder="https://example.com/stream.m3u8">
+                            <button id="btn-load-direct-stream" class="btn-primary-small margin-top-10">Play Stream</button>
                         </div>
-                    </div>
-
-                    <!-- FAVORITES TAB -->
-                    <div id="tab-favorites" class="tab-pane">
-                        <div id="favorites-list-container" class="channel-list grid-view">
-                            <!-- Dynamic Favorites Rendered Here -->
+                        <div class="control-card margin-top-10">
+                            <h4><i class="fa-solid fa-file-arrow-up"></i> Open Storage File</h4>
+                            <input type="file" id="input-local-file" class="nexus-input" accept="video/*">
                         </div>
                     </div>
                 </div>
             </aside>
 
-            <!-- MEDIA DISPLAY / VIEWPORT AREA -->
-            <main id="nexus-viewport" class="nexus-viewport">
-                
-                <!-- MULTI-SCREEN GRID OVERLAY (HIDDEN BY DEFAULT) -->
-                <div id="multiscreen-grid" class="multiscreen-grid hidden grid-2x2">
-                    <!-- Dynamic Grid Video Slots -->
-                </div>
-
-                <!-- MAIN VIDEO DISPLAY & CANVAS LAYER -->
-                <div id="single-player-container" class="single-player-wrapper">
-                    <!-- Ambient Canvas Glow Effect -->
-                    <canvas id="ambient-canvas" class="ambient-canvas"></canvas>
+            <!-- Video Viewport & Controls -->
+            <main id="nexus-player-container" class="nexus-viewport">
+                <div class="single-player-wrapper">
+                    <video id="main-video-element" class="main-video" playsinline crossorigin="anonymous"></video>
+                    <canvas id="video-processing-canvas" class="ambient-canvas hidden"></canvas>
                     
-                    <!-- Core Video Render Node -->
-                    <video id="main-video-element" class="main-video" crossorigin="anonymous" playsinline></video>
-                    
-                    <!-- WebGL / Canvas Processing Layer (For Upscaler & Filters) -->
-                    <canvas id="video-processing-canvas" class="processing-canvas hidden"></canvas>
+                    <!-- Subtitle Rendering Overlay -->
+                    <div id="subtitle-overlay" class="subtitle-overlay"></div>
 
-                    <!-- Interactive Canvas Overlay (Audio Visualizer & WebXR) -->
-                    <canvas id="audio-visualizer-canvas" class="visualizer-canvas hidden"></canvas>
-
-                    <!-- Subtitle Rendering Overlay Layer -->
-                    <div id="subtitle-render-overlay" class="subtitle-overlay">
-                        <span id="subtitle-text-node" class="subtitle-text"></span>
-                    </div>
-
-                    <!-- On-Screen Gesture & Touch Trigger Surface -->
-                    <div id="gesture-touch-surface" class="gesture-surface">
-                        <div id="gesture-indicator-left" class="gesture-feedback left"><i class="fa-solid fa-rotate-left"></i> <span>10s</span></div>
-                        <div id="gesture-indicator-center" class="gesture-feedback center"><i class="fa-solid fa-play"></i></div>
-                        <div id="gesture-indicator-right" class="gesture-feedback right"><i class="fa-solid fa-rotate-right"></i> <span>10s</span></div>
-                    </div>
-
-                    <!-- REAL-TIME TELEMETRY HUD OVERLAY -->
-                    <div id="telemetry-hud-overlay" class="telemetry-hud glass-panel hidden">
-                        <div class="hud-item"><span class="hud-label">FPS:</span> <span id="hud-fps-val" class="hud-value">60</span></div>
-                        <div class="hud-item"><span class="hud-label">Resolution:</span> <span id="hud-res-val" class="hud-value">1920x1080</span></div>
-                        <div class="hud-item"><span class="hud-label">Bitrate:</span> <span id="hud-bitrate-val" class="hud-value">4.5 Mbps</span></div>
-                        <div class="hud-item"><span class="hud-label">Speed:</span> <span id="hud-speed-val" class="hud-value">0.0 KB/s</span></div>
-                        <div class="hud-item"><span class="hud-label">Session Data:</span> <span id="hud-data-val" class="hud-value">0 MB</span></div>
-                        <div class="hud-item"><span class="hud-label">Buffer Depth:</span> <span id="hud-buffer-val" class="hud-value">12.4s</span></div>
-                        <div class="hud-item"><span class="hud-label">Codec:</span> <span id="hud-codec-val" class="hud-value">H.264 / AAC</span></div>
-                    </div>
-                </div>
-
-                <!-- PLAYER CONTROLS OVERLAY -->
-                <div id="player-controls-overlay" class="player-controls-wrapper glass-panel">
-                    <!-- Timeline Scrub & Preview Bar -->
-                    <div class="timeline-container">
-                        <div id="timeline-hover-thumbnail" class="timeline-thumbnail-preview hidden"></div>
-                        <input type="range" id="video-scrubber" class="nexus-slider scrubber" min="0" max="100" value="0" step="0.1">
-                        <div class="time-readout">
-                            <span id="time-current">00:00:00</span> / <span id="time-duration">00:00:00</span>
+                    <!-- Player Controls Overlay -->
+                    <div class="player-controls-wrapper">
+                        <div class="timeline-container">
+                            <input type="range" id="player-progress-bar" class="nexus-slider scrubber" min="0" max="100" value="0">
+                            <span id="player-time-display" class="time-readout">00:00 / 00:00</span>
                         </div>
-                    </div>
 
-                    <!-- Primary & Secondary Action Controls -->
-                    <div class="controls-bar">
-                        <div class="controls-left">
-                            <button id="btn-play-pause" class="icon-btn-large" title="Play/Pause"><i class="fa-solid fa-play"></i></button>
-                            <button id="btn-stop" class="icon-btn" title="Stop"><i class="fa-solid fa-square"></i></button>
-                            <button id="btn-step-back" class="icon-btn" title="Frame Back"><i class="fa-solid fa-backward-step"></i></button>
-                            <button id="btn-step-forward" class="icon-btn" title="Frame Forward"><i class="fa-solid fa-forward-step"></i></button>
-                            
-                            <!-- Volume Controls -->
-                            <div class="volume-control-group">
-                                <button id="btn-mute" class="icon-btn" title="Mute/Unmute"><i class="fa-solid fa-volume-high"></i></button>
-                                <input type="range" id="volume-slider" class="nexus-slider volume-slider" min="0" max="1" step="0.01" value="1">
+                        <div class="controls-bar">
+                            <div class="controls-left">
+                                <button id="btn-play-pause" class="icon-btn-large">▶</button>
+                                <div class="volume-control-group">
+                                    <i class="fa-solid fa-volume-high"></i>
+                                    <input type="range" id="slider-master-volume" class="nexus-slider volume-slider" min="0" max="1" step="0.05" value="1">
+                                </div>
+                                <span id="player-stream-title" class="stream-title-text">No Stream Loaded</span>
                             </div>
-                        </div>
 
-                        <div class="controls-center">
-                            <span id="current-media-title" class="media-title-marquee">No Media Selected</span>
-                        </div>
-
-                        <div class="controls-right">
-                            <button id="btn-open-videolab" class="icon-btn" title="Video Lab (Color Grading & Quality)"><i class="fa-solid fa-sliders"></i></button>
-                            <button id="btn-open-audiostudio" class="icon-btn" title="Audio Studio & Profiles"><i class="fa-solid fa-wave-square"></i></button>
-                            <button id="btn-open-subtitles" class="icon-btn" title="Subtitle Studio"><i class="fa-solid fa-closed-captioning"></i></button>
-                            <button id="btn-aspect-ratio" class="icon-btn" title="Aspect Ratio Switcher"><i class="fa-solid fa-vector-square"></i></button>
-                            <button id="btn-pip-mode" class="icon-btn" title="Picture-in-Picture"><i class="fa-solid fa-images"></i></button>
-                            <button id="btn-cast-tv" class="icon-btn" title="Wireless Cast / AirPlay"><i class="fa-solid fa-chromecast"></i></button>
-                            <button id="btn-fullscreen" class="icon-btn" title="Toggle Fullscreen"><i class="fa-solid fa-expand"></i></button>
+                            <div class="controls-right">
+                                <button id="btn-pip" class="icon-btn" title="Picture in Picture"><i class="fa-solid fa-clone"></i></button>
+                                <button id="btn-fullscreen" class="icon-btn" title="Fullscreen"><i class="fa-solid fa-expand"></i></button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </main>
-
-            <!-- FLOATING CONTROL DRAWERS / MODALS -->
-
-            <!-- 1. VIDEO LAB DRAWER (COLOR GRADING, MOVIE PRESETS & UPSCALER) -->
-            <div id="drawer-videolab" class="nexus-drawer glass-panel right-drawer hidden">
-                <div class="drawer-header">
-                    <h3><i class="fa-solid fa-sliders"></i> Video Lab & Movie Color Engine</h3>
-                    <div class="drawer-header-actions">
-                        <button id="btn-reset-videolab" class="btn-text-reset" title="Reset All Video Parameters"><i class="fa-solid fa-rotate-left"></i> Reset</button>
-                        <button class="icon-btn btn-close-drawer"><i class="fa-solid fa-xmark"></i></button>
-                    </div>
-                </div>
-                <div class="drawer-body">
-                    <!-- Movie Based Color Grading Search -->
-                    <div class="control-card">
-                        <h4><i class="fa-solid fa-film"></i> Movie Color Grade Search</h4>
-                        <div class="input-with-button">
-                            <input type="text" id="movie-grade-search-input" placeholder="Search film (e.g. Matrix, Oppenheimer)...">
-                            <button id="btn-apply-movie-grade" class="btn-primary-small">Apply Look</button>
-                        </div>
-                    </div>
-
-                    <!-- Software Upscaler & Sharpening -->
-                    <div class="control-card">
-                        <h4><i class="fa-solid fa-wand-magic-sparkles"></i> AI Software Video Upscaler</h4>
-                        <div class="toggle-row">
-                            <span>Enable Canvas Sharpening Matrix</span>
-                            <label class="nexus-switch">
-                                <input type="checkbox" id="toggle-video-upscaler">
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
-                        <div class="slider-row">
-                            <label>Sharpness Strength</label>
-                            <input type="range" id="slider-upscale-sharpness" class="nexus-slider" min="0" max="100" value="25">
-                        </div>
-                    </div>
-
-                    <!-- Color Grading Sliders -->
-                    <div class="control-card">
-                        <h4><i class="fa-solid fa-palette"></i> Manual Color Grading Matrix</h4>
-                        <div class="slider-row">
-                            <label>Brightness <span id="val-brightness">100%</span></label>
-                            <input type="range" id="slider-brightness" class="nexus-slider" min="0" max="200" value="100">
-                        </div>
-                        <div class="slider-row">
-                            <label>Contrast <span id="val-contrast">100%</span></label>
-                            <input type="range" id="slider-contrast" class="nexus-slider" min="0" max="200" value="100">
-                        </div>
-                        <div class="slider-row">
-                            <label>Saturation <span id="val-saturation">100%</span></label>
-                            <input type="range" id="slider-saturation" class="nexus-slider" min="0" max="200" value="100">
-                        </div>
-                        <div class="slider-row">
-                            <label>Hue Rotation <span id="val-hue">0°</span></label>
-                            <input type="range" id="slider-hue" class="nexus-slider" min="0" max="360" value="0">
-                        </div>
-                        <div class="slider-row">
-                            <label>Gamma Correction <span id="val-gamma">1.0</span></label>
-                            <input type="range" id="slider-gamma" class="nexus-slider" min="0.2" max="3.0" step="0.1" value="1.0">
-                        </div>
-                        <div class="slider-row">
-                            <label>Color Temperature <span id="val-temp">0</span></label>
-                            <input type="range" id="slider-temperature" class="nexus-slider" min="-100" max="100" value="0">
-                        </div>
-                    </div>
-
-                    <!-- Custom Aspect Ratio Configurator -->
-                    <div class="control-card">
-                        <h4><i class="fa-solid fa-crop-simple"></i> Custom Aspect Ratio</h4>
-                        <div class="input-with-button">
-                            <input type="text" id="custom-aspect-ratio-input" placeholder="e.g. 2.39:1 or 18:9">
-                            <button id="btn-apply-custom-aspect" class="btn-primary-small">Set Ratio</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 2. AUDIO STUDIO DRAWER (PROFILES, EQUALIZER & GAIN BOOST) -->
-            <div id="drawer-audiostudio" class="nexus-drawer glass-panel right-drawer hidden">
-                <div class="drawer-header">
-                    <h3><i class="fa-solid fa-wave-square"></i> Audio Studio & Sound Profiles</h3>
-                    <div class="drawer-header-actions">
-                        <button id="btn-reset-audiostudio" class="btn-text-reset" title="Reset Audio Profile & EQ"><i class="fa-solid fa-rotate-left"></i> Reset</button>
-                        <button class="icon-btn btn-close-drawer"><i class="fa-solid fa-xmark"></i></button>
-                    </div>
-                </div>
-                <div class="drawer-body">
-                    <!-- Sound Profiles Selection -->
-                    <div class="control-card">
-                        <h4><i class="fa-solid fa-headphones"></i> Sound Profiles</h4>
-                        <div class="profile-grid">
-                            <button class="btn-profile active" data-profile="cinema"><i class="fa-solid fa-film"></i> Film</button>
-                            <button class="btn-profile" data-profile="music"><i class="fa-solid fa-music"></i> Music</button>
-                            <button class="btn-profile" data-profile="voice"><i class="fa-solid fa-comments"></i> Dialogue</button>
-                            <button class="btn-profile" data-profile="sports"><i class="fa-solid fa-futbol"></i> Sports</button>
-                            <button class="btn-profile" data-profile="night"><i class="fa-solid fa-moon"></i> Night</button>
-                        </div>
-                    </div>
-
-                    <!-- 500% Gain Node Volume Booster -->
-                    <div class="control-card">
-                        <h4><i class="fa-solid fa-bolt"></i> Volume Booster (500% Gain Node)</h4>
-                        <div class="slider-row">
-                            <label>Audio Gain Multiplier <span id="val-gain-boost">1.0x</span></label>
-                            <input type="range" id="slider-gain-boost" class="nexus-slider" min="1.0" max="5.0" step="0.1" value="1.0">
-                        </div>
-                    </div>
-
-                    <!-- Multi-Band Equalizer -->
-                    <div class="control-card">
-                        <h4><i class="fa-solid fa-sliders-h"></i> Multi-Band Equalizer</h4>
-                        <div class="eq-band-container">
-                            <div class="eq-slider-col">
-                                <input type="range" id="eq-band-60" class="nexus-slider vertical" min="-12" max="12" value="0" orient="vertical">
-                                <span>60Hz</span>
-                            </div>
-                            <div class="eq-slider-col">
-                                <input type="range" id="eq-band-230" class="nexus-slider vertical" min="-12" max="12" value="0" orient="vertical">
-                                <span>230Hz</span>
-                            </div>
-                            <div class="eq-slider-col">
-                                <input type="range" id="eq-band-910" class="nexus-slider vertical" min="-12" max="12" value="0" orient="vertical">
-                                <span>910Hz</span>
-                            </div>
-                            <div class="eq-slider-col">
-                                <input type="range" id="eq-band-4k" class="nexus-slider vertical" min="-12" max="12" value="0" orient="vertical">
-                                <span>4kHz</span>
-                            </div>
-                            <div class="eq-slider-col">
-                                <input type="range" id="eq-band-14k" class="nexus-slider vertical" min="-12" max="12" value="0" orient="vertical">
-                                <span>14kHz</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Audio Delay Sync -->
-                    <div class="control-card">
-                        <h4><i class="fa-solid fa-clock"></i> Audio Delay Sync</h4>
-                        <div class="stepper-row">
-                            <button id="btn-audio-delay-minus" class="btn-icon-step">-0.1s</button>
-                            <span id="val-audio-delay">0.0s</span>
-                            <button id="btn-audio-delay-plus" class="btn-icon-step">+0.1s</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 3. SUBTITLE STUDIO DRAWER -->
-            <div id="drawer-subtitles" class="nexus-drawer glass-panel right-drawer hidden">
-                <div class="drawer-header">
-                    <h3><i class="fa-solid fa-closed-captioning"></i> Subtitle Studio</h3>
-                    <div class="drawer-header-actions">
-                        <button id="btn-reset-subtitles" class="btn-text-reset" title="Reset Subtitle Settings"><i class="fa-solid fa-rotate-left"></i> Reset</button>
-                        <button class="icon-btn btn-close-drawer"><i class="fa-solid fa-xmark"></i></button>
-                    </div>
-                </div>
-                <div class="drawer-body">
-                    <!-- File Upload & Track Selector -->
-                    <div class="control-card">
-                        <h4><i class="fa-solid fa-file-arrow-up"></i> Load Subtitles</h4>
-                        <label for="subtitle-file-input" class="btn-primary-small block-btn">
-                            <i class="fa-solid fa-upload"></i> Upload External (.srt, .vtt, .ass)
-                        </label>
-                        <input type="file" id="subtitle-file-input" accept=".srt,.vtt,.ass" class="hidden">
-                        
-                        <div class="select-row margin-top-10">
-                            <label>Embedded Tracks</label>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#000000">
-    <meta name="description" content="Nexus Player - Advanced Web-Based Omni-Media Suite & IPTV Player">
-    <title>Nexus Player | Omni-Media Suite</title>
-    
-    <!-- PWA Manifest & App Icons -->
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icons/icon-192.png">
-    
-    <!-- Third-Party CSS / Fonts -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    
-    <!-- Nexus Core CSS -->
-    <link rel="stylesheet" href="css/style.css">
-</head>
-<body class="amoled-theme">
-
-    <!-- APP CONTAINER -->
-    <div id="nexus-app" class="nexus-app-container">
-
-        <!-- HEADER / NAVIGATION BAR -->
-        <header class="nexus-header glass-panel">
-            <div class="header-left">
-                <button id="btn-toggle-sidebar" class="icon-btn" title="Toggle Navigation Bar">
-                    <i class="fa-solid fa-bars"></i>
-                </button>
-                <div class="brand-logo">
-                    <i class="fa-solid fa-atom logo-spin"></i>
-                    <span class="brand-name">NEXUS<span class="highlight">PLAYER</span></span>
-                </div>
-            </div>
-
-            <div class="header-center">
-                <div class="search-bar-wrapper">
-                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                    <input type="text" id="global-search-input" placeholder="Search live channels, videos, movies, or presets..." autocomplete="off">
-                    <button id="btn-clear-search" class="icon-btn-small hidden"><i class="fa-solid fa-xmark"></i></button>
-                </div>
-            </div>
-
-            <div class="header-right">
-                <button id="btn-telemetry-hud" class="icon-btn" title="Developer HUD & Telemetry">
-                    <i class="fa-solid fa-microchip"></i>
-                </button>
-                <button id="btn-ai-assistant" class="icon-btn glow-accent" title="Nexus AI Assistant">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i>
-                </button>
-                <button id="btn-open-settings" class="icon-btn" title="Settings & Management">
-                    <i class="fa-solid fa-gear"></i>
-                </button>
-            </div>
-        </header>
-
-        <!-- MAIN LAYOUT WRAPPER -->
-        <div class="nexus-body">
-
-            <!-- SIDE NAVIGATION / PLAYLIST DRAWER -->
-            <aside id="nexus-sidebar" class="nexus-sidebar glass-panel collapsed">
-                <div class="sidebar-tabs">
-                    <button class="sidebar-tab active" data-target="tab-channels"><i class="fa-solid fa-tv"></i> IPTV</button>
-                    <button class="sidebar-tab" data-target="tab-library"><i class="fa-solid fa-folder-open"></i> Media</button>
-                    <button class="sidebar-tab" data-target="tab-epg"><i class="fa-solid fa-list-ol"></i> EPG</button>
-                    <button class="sidebar-tab" data-target="tab-favorites"><i class="fa-solid fa-star"></i> Starred</button>
-                </div>
-
-                <div class="sidebar-content">
-                    <!-- IPTV CHANNELS TAB -->
-                    <div id="tab-channels" class="tab-pane active">
-                        <div class="pane-controls">
-                            <select id="category-filter-select" class="nexus-select">
-                                <option value="all">All Categories</option>
-                            </select>
-                            <button id="btn-add-playlist" class="btn-primary-small"><i class="fa-solid fa-plus"></i> Load M3U/Xtream</button>
-                        </div>
-                        <div id="channel-list-container" class="channel-list grid-view">
-                            <!-- Dynamic Channel Items Rendered Here -->
-                        </div>
-                    </div>
-
-                    <!-- LOCAL MEDIA LIBRARY TAB -->
-                    <div id="tab-library" class="tab-pane">
-                        <div class="pane-controls">
-                            <label for="local-file-input" class="btn-primary-small block-btn">
-                                <i class="fa-solid fa-file-video"></i> Open Storage File
-                            </label>
-                            <input type="file" id="local-file-input" accept="video/*,audio/*,.mkv,.ts" multiple class="hidden">
-                        </div>
-                        <div id="local-media-list" class="media-list">
-                            <!-- Dynamic Local Storage Files Rendered Here -->
-                        </div>
-                    </div>
-
-                    <!-- EPG TV GUIDE TAB -->
-                    <div id="tab-epg" class="tab-pane">
-                        <div id="epg-schedule-container" class="epg-container">
-                            <p class="placeholder-text">Load XMLTV EPG Source to View Schedule.</p>
-                        </div>
-                    </div>
-
-                    <!-- FAVORITES TAB -->
-                    <div id="tab-favorites" class="tab-pane">
-                        <div id="favorites-list-container" class="channel-list grid-view">
-                            <!-- Dynamic Favorites Rendered Here -->
-                        </div>
-                    </div>
-                </div>
-            </aside>
-
-            <!-- MEDIA DISPLAY / VIEWPORT AREA -->
-            <main id="nexus-viewport" class="nexus-viewport">
-                
-                <!-- MULTI-SCREEN GRID OVERLAY (HIDDEN BY DEFAULT) -->
-                <div id="multiscreen-grid" class="multiscreen-grid hidden grid-2x2">
-                    <!-- Dynamic Grid Video Slots -->
-                </div>
-
-                <!-- MAIN VIDEO DISPLAY & CANVAS LAYER -->
-                <div id="single-player-container" class="single-player-wrapper">
-                    <!-- Ambient Canvas Glow Effect -->
-                    <canvas id="ambient-canvas" class="ambient-canvas"></canvas>
-                    
-                    <!-- Core Video Render Node -->
-                    <video id="main-video-element" class="main-video" crossorigin="anonymous" playsinline></video>
-                    
-                    <!-- WebGL / Canvas Processing Layer (For Upscaler & Filters) -->
-                    <canvas id="video-processing-canvas" class="processing-canvas hidden"></canvas>
-
-                    <!-- Interactive Canvas Overlay (Audio Visualizer & WebXR) -->
-                    <canvas id="audio-visualizer-canvas" class="visualizer-canvas hidden"></canvas>
-
-                    <!-- Subtitle Rendering Overlay Layer -->
-                    <div id="subtitle-render-overlay" class="subtitle-overlay">
-                        <span id="subtitle-text-node" class="subtitle-text"></span>
-                    </div>
-
-                    <!-- On-Screen Gesture & Touch Trigger Surface -->
-                    <div id="gesture-touch-surface" class="gesture-surface">
-                        <div id="gesture-indicator-left" class="gesture-feedback left"><i class="fa-solid fa-rotate-left"></i> <span>10s</span></div>
-                        <div id="gesture-indicator-center" class="gesture-feedback center"><i class="fa-solid fa-play"></i></div>
-                        <div id="gesture-indicator-right" class="gesture-feedback right"><i class="fa-solid fa-rotate-right"></i> <span>10s</span></div>
-                    </div>
-
-                    <!-- REAL-TIME TELEMETRY HUD OVERLAY -->
-                    <div id="telemetry-hud-overlay" class="telemetry-hud glass-panel hidden">
-                        <div class="hud-item"><span class="hud-label">FPS:</span> <span id="hud-fps-val" class="hud-value">60</span></div>
-                        <div class="hud-item"><span class="hud-label">Resolution:</span> <span id="hud-res-val" class="hud-value">1920x1080</span></div>
-                        <div class="hud-item"><span class="hud-label">Bitrate:</span> <span id="hud-bitrate-val" class="hud-value">4.5 Mbps</span></div>
-                        <div class="hud-item"><span class="hud-label">Speed:</span> <span id="hud-speed-val" class="hud-value">0.0 KB/s</span></div>
-                        <div class="hud-item"><span class="hud-label">Session Data:</span> <span id="hud-data-val" class="hud-value">0 MB</span></div>
-                        <div class="hud-item"><span class="hud-label">Buffer Depth:</span> <span id="hud-buffer-val" class="hud-value">12.4s</span></div>
-                        <div class="hud-item"><span class="hud-label">Codec:</span> <span id="hud-codec-val" class="hud-value">H.264 / AAC</span></div>
-                    </div>
-                </div>
-
-                <!-- PLAYER CONTROLS OVERLAY -->
-                <div id="player-controls-overlay" class="player-controls-wrapper glass-panel">
-                    <!-- Timeline Scrub & Preview Bar -->
-                    <div class="timeline-container">
-                        <div id="timeline-hover-thumbnail" class="timeline-thumbnail-preview hidden"></div>
-                        <input type="range" id="video-scrubber" class="nexus-slider scrubber" min="0" max="100" value="0" step="0.1">
-                        <div class="time-readout">
-                            <span id="time-current">00:00:00</span> / <span id="time-duration">00:00:00</span>
-                        </div>
-                    </div>
-
-                    <!-- Primary & Secondary Action Controls -->
-                    <div class="controls-bar">
-                        <div class="controls-left">
-                            <button id="btn-play-pause" class="icon-btn-large" title="Play/Pause"><i class="fa-solid fa-play"></i></button>
-                            <button id="btn-stop" class="icon-btn" title="Stop"><i class="fa-solid fa-square"></i></button>
-                            <button id="btn-step-back" class="icon-btn" title="Frame Back"><i class="fa-solid fa-backward-step"></i></button>
-                            <button id="btn-step-forward" class="icon-btn" title="Frame Forward"><i class="fa-solid fa-forward-step"></i></button>
-                            
-                            <!-- Volume Controls -->
-                            <div class="volume-control-group">
-                                <button id="btn-mute" class="icon-btn" title="Mute/Unmute"><i class="fa-solid fa-volume-high"></i></button>
-                                <input type="range" id="volume-slider" class="nexus-slider volume-slider" min="0" max="1" step="0.01" value="1">
-                            </div>
-                        </div>
-
-                        <div class="controls-center">
-                            <span id="current-media-title" class="media-title-marquee">No Media Selected</span>
-                        </div>
-
-                        <div class="controls-right">
-                            <button id="btn-open-videolab" class="icon-btn" title="Video Lab (Color Grading & Quality)"><i class="fa-solid fa-sliders"></i></button>
-                            <button id="btn-open-audiostudio" class="icon-btn" title="Audio Studio & Profiles"><i class="fa-solid fa-wave-square"></i></button>
-                            <button id="btn-open-subtitles" class="icon-btn" title="Subtitle Studio"><i class="fa-solid fa-closed-captioning"></i></button>
-                            <button id="btn-aspect-ratio" class="icon-btn" title="Aspect Ratio Switcher"><i class="fa-solid fa-vector-square"></i></button>
-                            <button id="btn-pip-mode" class="icon-btn" title="Picture-in-Picture"><i class="fa-solid fa-images"></i></button>
-                            <button id="btn-cast-tv" class="icon-btn" title="Wireless Cast / AirPlay"><i class="fa-solid fa-chromecast"></i></button>
-                            <button id="btn-fullscreen" class="icon-btn" title="Toggle Fullscreen"><i class="fa-solid fa-expand"></i></button>
-                        </div>
-                    </div>
-                </div>
-            </main>
-
-            <!-- FLOATING CONTROL DRAWERS / MODALS -->
-
-            <!-- 1. VIDEO LAB DRAWER (COLOR GRADING, MOVIE PRESETS & UPSCALER) -->
-            <div id="drawer-videolab" class="nexus-drawer glass-panel right-drawer hidden">
-                <div class="drawer-header">
-                    <h3><i class="fa-solid fa-sliders"></i> Video Lab & Movie Color Engine</h3>
-                    <div class="drawer-header-actions">
-                        <button id="btn-reset-videolab" class="btn-text-reset" title="Reset All Video Parameters"><i class="fa-solid fa-rotate-left"></i> Reset</button>
-                        <button class="icon-btn btn-close-drawer"><i class="fa-solid fa-xmark"></i></button>
-                    </div>
-                </div>
-                <div class="drawer-body">
-                    <!-- Movie Based Color Grading Search -->
-                    <div class="control-card">
-                        <h4><i class="fa-solid fa-film"></i> Movie Color Grade Search</h4>
-                        <div class="input-with-button">
-                            <input type="text" id="movie-grade-search-input" placeholder="Search film (e.g. Matrix, Oppenheimer)...">
-                            <button id="btn-apply-movie-grade" class="btn-primary-small">Apply Look</button>
-                        </div>
-                    </div>
-
-                    <!-- Software Upscaler & Sharpening -->
-                    <div class="control-card">
-                        <h4><i class="fa-solid fa-wand-magic-sparkles"></i> AI Software Video Upscaler</h4>
-                        <div class="toggle-row">
-                            <span>Enable Canvas Sharpening Matrix</span>
-                            <label class="nexus-switch">
-                                <input type="checkbox" id="toggle-video-upscaler">
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
-                        <div class="slider-row">
-                            <label>Sharpness Strength</label>
-                            <input type="range" id="slider-upscale-sharpness" class="nexus-slider" min="0" max="100" value="25">
-                        </div>
-                    </div>
-
-                    <!-- Color Grading Sliders -->
-                    <div class="control-card">
-                        <h4><i class="fa-solid fa-palette"></i> Manual Color Grading Matrix</h4>
-                        <div class="slider-row">
-                            <label>Brightness <span id="val-brightness">100%</span></label>
-                            <input type="range" id="slider-brightness" class="nexus-slider" min="0" max="200" value="100">
-                        </div>
-                        <div class="slider-row">
-                            <label>Contrast <span id="val-contrast">100%</span></label>
-                            <input type="range" id="slider-contrast" class="nexus-slider" min="0" max="200" value="100">
-                        </div>
-                        <div class="slider-row">
-                            <label>Saturation <span id="val-saturation">100%</span></label>
-                            <input type="range" id="slider-saturation" class="nexus-slider" min="0" max="200" value="100">
-                        </div>
-                        <div class="slider-row">
-                            <label>Hue Rotation <span id="val-hue">0°</span></label>
-                            <input type="range" id="slider-hue" class="nexus-slider" min="0" max="360" value="0">
-                        </div>
-                        <div class="slider-row">
-                            <label>Gamma Correction <span id="val-gamma">1.0</span></label>
-                            <input type="range" id="slider-gamma" class="nexus-slider" min="0.2" max="3.0" step="0.1" value="1.0">
-                        </div>
-                        <div class="slider-row">
-                            <label>Color Temperature <span id="val-temp">0</span></label>
-                            <input type="range" id="slider-temperature" class="nexus-slider" min="-100" max="100" value="0">
-                        </div>
-                    </div>
-
-                    <!-- Custom Aspect Ratio Configurator -->
-                    <div class="control-card">
-                        <h4><i class="fa-solid fa-crop-simple"></i> Custom Aspect Ratio</h4>
-                        <div class="input-with-button">
-                            <input type="text" id="custom-aspect-ratio-input" placeholder="e.g. 2.39:1 or 18:9">
-                            <button id="btn-apply-custom-aspect" class="btn-primary-small">Set Ratio</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 2. AUDIO STUDIO DRAWER (PROFILES, EQUALIZER & GAIN BOOST) -->
-            <div id="drawer-audiostudio" class="nexus-drawer glass-panel right-drawer hidden">
-                <div class="drawer-header">
-                    <h3><i class="fa-solid fa-wave-square"></i> Audio Studio & Sound Profiles</h3>
-                    <div class="drawer-header-actions">
-                        <button id="btn-reset-audiostudio" class="btn-text-reset" title="Reset Audio Profile & EQ"><i class="fa-solid fa-rotate-left"></i> Reset</button>
-                        <button class="icon-btn btn-close-drawer"><i class="fa-solid fa-xmark"></i></button>
-                    </div>
-                </div>
-                <div class="drawer-body">
-                    <!-- Sound Profiles Selection -->
-                    <div class="control-card">
-                        <h4><i class="fa-solid fa-headphones"></i> Sound Profiles</h4>
-                        <div class="profile-grid">
-                            <button class="btn-profile active" data-profile="cinema"><i class="fa-solid fa-film"></i> Film</button>
-                            <button class="btn-profile" data-profile="music"><i class="fa-solid fa-music"></i> Music</button>
-                            <button class="btn-profile" data-profile="voice"><i class="fa-solid fa-comments"></i> Dialogue</button>
-                            <button class="btn-profile" data-profile="sports"><i class="fa-solid fa-futbol"></i> Sports</button>
-                            <button class="btn-profile" data-profile="night"><i class="fa-solid fa-moon"></i> Night</button>
-                        </div>
-                    </div>
-
-                    <!-- 500% Gain Node Volume Booster -->
-                    <div class="control-card">
-                        <h4><i class="fa-solid fa-bolt"></i> Volume Booster (500% Gain Node)</h4>
-                        <div class="slider-row">
-                            <label>Audio Gain Multiplier <span id="val-gain-boost">1.0x</span></label>
-                            <input type="range" id="slider-gain-boost" class="nexus-slider" min="1.0" max="5.0" step="0.1" value="1.0">
-                        </div>
-                    </div>
-
-                    <!-- Multi-Band Equalizer -->
-                    <div class="control-card">
-                        <h4><i class="fa-solid fa-sliders-h"></i> Multi-Band Equalizer</h4>
-                        <div class="eq-band-container">
-                            <div class="eq-slider-col">
-                                <input type="range" id="eq-band-60" class="nexus-slider vertical" min="-12" max="12" value="0" orient="vertical">
-                                <span>60Hz</span>
-                            </div>
-                            <div class="eq-slider-col">
-                                <input type="range" id="eq-band-230" class="nexus-slider vertical" min="-12" max="12" value="0" orient="vertical">
-                                <span>230Hz</span>
-                            </div>
-                            <div class="eq-slider-col">
-                                <input type="range" id="eq-band-910" class="nexus-slider vertical" min="-12" max="12" value="0" orient="vertical">
-                                <span>910Hz</span>
-                            </div>
-                            <div class="eq-slider-col">
-                                <input type="range" id="eq-band-4k" class="nexus-slider vertical" min="-12" max="12" value="0" orient="vertical">
-                                <span>4kHz</span>
-                            </div>
-                            <div class="eq-slider-col">
-                                <input type="range" id="eq-band-14k" class="nexus-slider vertical" min="-12" max="12" value="0" orient="vertical">
-                                <span>14kHz</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Audio Delay Sync -->
-                    <div class="control-card">
-                        <h4><i class="fa-solid fa-clock"></i> Audio Delay Sync</h4>
-                        <div class="stepper-row">
-                            <button id="btn-audio-delay-minus" class="btn-icon-step">-0.1s</button>
-                            <span id="val-audio-delay">0.0s</span>
-                            <button id="btn-audio-delay-plus" class="btn-icon-step">+0.1s</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 3. SUBTITLE STUDIO DRAWER -->
-            <div id="drawer-subtitles" class="nexus-drawer glass-panel right-drawer hidden">
-                <div class="drawer-header">
-                    <h3><i class="fa-solid fa-closed-captioning"></i> Subtitle Studio</h3>
-                    <div class="drawer-header-actions">
-                        <button id="btn-reset-subtitles" class="btn-text-reset" title="Reset Subtitle Settings"><i class="fa-solid fa-rotate-left"></i> Reset</button>
-                        <button class="icon-btn btn-close-drawer"><i class="fa-solid fa-xmark"></i></button>
-                    </div>
-                </div>
-                <div class="drawer-body">
-                    <!-- File Upload & Track Selector -->
-                    <div class="control-card">
-                        <h4><i class="fa-solid fa-file-arrow-up"></i> Load Subtitles</h4>
-                        <label for="subtitle-file-input" class="btn-primary-small block-btn">
-                            <i class="fa-solid fa-upload"></i> Upload External (.srt, .vtt, .ass)
-                        </label>
-                        <input type="file" id="subtitle-file-input" accept=".srt,.vtt,.ass" class="hidden">
-                        
-                        <div class="select-row margin-top-10">
-                            <label>Embedded Tracks</label>
-                            <select id="select-embedded-subtitles" class="nexus-select">
-                                <option value="none">Disabled / Off</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Global Online Subtitle Search Engine -->
-                    <div class="control-card">
-                        <h4><i class="fa-solid fa-globe"></i> Global Online Search</h4>
-                        <div class="input-with-button">
-                            <input type="text" id="subtitle-search-query" placeholder="Movie or Episode name...">
-                            <button id="btn-search-online-subtitles" class="btn-primary-small">Search</button>
-                        </div>
-                        <div id="subtitle-search-results" class="search-results-box">
-                            <!-- Dynamic Search Results -->
-                        </div>
-                    </div>
-
-                    <!-- Delay Sync Engine -->
-                    <div class="control-card">
-                        <h4><i class="fa-solid fa-stopwatch"></i> Subtitle Delay Sync</h4>
-                        <div class="stepper-row">
-                            <button id="btn-sub-delay-minus" class="btn-icon-step">-0.1s</button>
-                            <span id="val-sub-delay">0.0s</span>
-                            <button id="btn-sub-delay-plus" class="btn-icon-step">+0.1s</button>
-                        </div>
-                    </div>
-
-                    <!-- Styling Engine -->
-                    <div class="control-card">
-                        <h4><i class="fa-solid fa-font"></i> Subtitle Styling Engine</h4>
-                        <div class="slider-row">
-                            <label>Font Size <span id="val-sub-size">24px</span></label>
-                            <input type="range" id="slider-sub-fontsize" class="nexus-slider" min="14" max="48" value="24">
-                        </div>
-                        <div class="color-picker-row">
-                            <label>Font Color</label>
-                            <input type="color" id="picker-sub-color" value="#ffffff">
-                            <label>Background Opacity</label>
-                            <input type="range" id="slider-sub-bgopacity" class="nexus-slider" min="0" max="1" step="0.1" value="0.5">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 4. NEXUS AI ASSISTANT DRAWER -->
-            <div id="drawer-ai-assistant" class="nexus-drawer glass-panel right-drawer hidden">
-                <div class="drawer-header">
-                    <h3><i class="fa-solid fa-wand-magic-sparkles"></i> Nexus AI Assistant</h3>
-                    <button class="icon-btn btn-close-drawer"><i class="fa-solid fa-xmark"></i></button>
-                </div>
-                <div class="drawer-body chat-drawer-body">
-                    <div id="ai-chat-messages" class="chat-messages-container">
-                        <div class="chat-bubble ai-bubble">
-                            Hello! I am your dedicated Nexus Player Assistant. How can I assist with your streams, audio profiles, or playback diagnostics today?
-                        </div>
-                    </div>
-                    <div class="chat-input-wrapper">
-                        <input type="text" id="ai-chat-input" placeholder="Type a request (e.g. 'Make voices clearer' or 'Fix lag')...">
-                        <button id="btn-send-ai-chat" class="btn-primary-small"><i class="fa-solid fa-paper-plane"></i></button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 5. GLOBAL SETTINGS & SYSTEM RESET MODAL -->
-            <div id="modal-settings" class="nexus-modal glass-panel hidden">
-                <div class="modal-header">
-                    <h3><i class="fa-solid fa-gear"></i> System Settings & Storage</h3>
-                    <button class="icon-btn btn-close-modal"><i class="fa-solid fa-xmark"></i></button>
-                </div>
-                <div class="modal-body">
-                    <div class="control-card">
-                        <h4><i class="fa-solid fa-shield-halved"></i> Stream Protection & Spoofing</h4>
-                        <div class="input-row">
-                            <label>Custom User-Agent Header</label>
-                            <input type="text" id="setting-user-agent" class="nexus-input" placeholder="Mozilla/5.0 (Windows NT 10.0; Win64; x64)...">
-                        </div>
-                        <div class="input-row margin-top-10">
-                            <label>Custom Referer Header</label>
-                            <input type="text" id="setting-referer" class="nexus-input" placeholder="https://provider-domain.com">
-                        </div>
-                    </div>
-
-                    <div class="control-card">
-                        <h4><i class="fa-solid fa-rotate-left"></i> Global Reset Engine</h4>
-                        <p class="card-desc">Restore app settings to factory response or wipe local storage cache completely.</p>
-                        <div class="button-row-duo margin-top-10">
-                            <button id="btn-reset-all-settings" class="btn-warning"><i class="fa-solid fa-arrow-rotate-left"></i> Reset All Settings</button>
-                            <button id="btn-factory-reset" class="btn-danger"><i class="fa-solid fa-trash-can"></i> Factory Reset & Clear Data</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
         </div>
     </div>
 
-    <!-- HLS.js Core Library -->
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-    
-    <!-- Nexus Core Scripts -->
-    <script src="js/storage.js"></script>
-    <script src="js/videolab.js"></script>
-    <script src="js/audio.js"></script>
-    <script src="js/subtitles.js"></script>
-    <script src="js/iptv.js"></script>
-    <script src="js/app.js"></script>
+    <!-- M3U / Xtream Loader Modal -->
+    <div id="modal-m3u-loader" class="nexus-modal glass-panel hidden">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-list"></i> Load M3U Playlist</h3>
+            <button class="icon-btn btn-close-modal"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <label>M3U / M3U8 Playlist URL</label>
+            <input type="text" id="input-m3u-url" class="nexus-input" placeholder="https://example.com/playlist.m3u8">
+            <button id="btn-parse-m3u-url" class="btn-primary-small margin-top-10">Load Playlist</button>
+        </div>
+    </div>
+
+    <!-- Application Engine Scripts (Using Updated Path: js/js/) -->
+    <script src="js/js/storage.js"></script>
+    <script src="js/js/videolab.js"></script>
+    <script src="js/js/audio.js"></script>
+    <script src="js/js/m3u.js"></script>
+    <script src="js/js/player.js"></script>
+    <script src="js/js/main.js"></script>
 </body>
 </html>
 
