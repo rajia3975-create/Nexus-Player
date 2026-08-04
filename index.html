@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nexus Player — Ultimate Media & IPTV Platform</title>
+  <!-- HLS Stream Engine -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <style>
+    :root {
+      --bg-primary: #090d16;
+      --bg-card: rgba(22, 30, 46, 0.7);
+      --accent-color: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.35);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Top Navigation Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 20px;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: var(--accent-color);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .app-container {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      padding: 16px;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    @media (min-width: 900px) {
+      .app-container {
+        grid-template-columns: 2fr 1fr;
+      }
+    }
+
+    /* Player & Ambient Glow Container */
+    .viewport-card {
+      position: relative;
+      background: var(--bg-card);
+      border-radius: 16px;
+      border: 1px solid var(--border-color);
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .media-wrapper {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      transition: filter 0.1s ease;
+    }
+
+    /* Tabbed Navigation Control Center */
+    .control-center {
+      background: var(--bg-card);
+      border-radius: 16px;
+      border: 1px solid var(--border-color);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 8px;
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 8px 14px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: var(--accent-color);
+      color: #000;
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .tab-panel {
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .tab-panel.active {
+      display: flex;
+    }
+
+    /* Inputs & Sliders */
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .control-group label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    input[type="text"], input[type="file"], select {
+      width: 100%;
+      padding: 10px;
+      background: #0d1322;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-main);
+      font-size: 0.85rem;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent-color);
+    }
+
+    .btn {
+      padding: 10px 16px;
+      background: var(--accent-color);
+      color: #000;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .btn:hover { opacity: 0.9; }
+
+    /* Channel List */
+    .channel-list {
+      max-height: 250px;
+      overflow-y: auto;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background: #0b101d;
+    }
+
+    .channel-item {
+      padding: 10px 12px;
+      font-size: 0.85rem;
+      border-bottom: 1px solid var(--border-color);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .channel-item:hover {
+      background: rgba(56, 189, 248, 0.1);
+      color: var(--accent-color);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand-title">
+      <span>⚡ Nexus Player</span>
+    </div>
+    <span style="font-size: 0.75rem; color: var(--text-muted);">v1.0-alpha</span>
+  </header>
+
+  <div class="app-container">
+    
+    <!-- Left Area: Main Video Screen -->
+    <div class="viewport-card">
+      <div class="media-wrapper">
+        <video id="nexusVideo" controls playsinline></video>
+      </div>
+    </div>
+
+    <!-- Right Area: Feature Studio & IPTV Drawer -->
+    <div class="control-center">
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('iptv')">📺 IPTV</button>
+        <button class="tab-btn" onclick="switchTab('videolab')">🎨 Video Lab</button>
+        <button class="tab-btn" onclick="switchTab('audio')">🎵 Audio Studio</button>
+      </div>
+
+      <!-- IPTV Panel -->
+      <div id="tab-iptv" class="tab-panel active">
+        <div class="control-group">
+          <label for="m3uUrl">M3U Playlist URL</label>
+          <input type="text" id="m3uUrl" placeholder="https://example.com/playlist.m3u8">
+        </div>
+        <button class="btn" onclick="loadM3U()">Load Stream / Playlist</button>
+        
+        <div class="control-group" style="margin-top: 10px;">
+          <label>Channels</label>
+          <div id="channelList" class="channel-list">
+            <div class="channel-item">No channels loaded yet.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Video Lab Panel -->
+      <div id="tab-videolab" class="tab-panel">
+        <div class="control-group">
+          <label>Brightness <span id="val-brightness">100%</span></label>
+          <input type="range" id="slider-brightness" min="0" max="200" value="100" oninput="updateFilters()">
+        </div>
+        <div class="control-group">
+          <label>Contrast <span id="val-contrast">100%</span></label>
+          <input type="range" id="slider-contrast" min="0" max="200" value="100" oninput="updateFilters()">
+        </div>
+        <div class="control-group">
+          <label>Saturate <span id="val-saturate">100%</span></label>
+          <input type="range" id="slider-saturate" min="0" max="200" value="100" oninput="updateFilters()">
+        </div>
+        <div class="control-group">
+          <label>Hue Rotate <span id="val-hue">0deg</span></label>
+          <input type="range" id="slider-hue" min="0" max="360" value="0" oninput="updateFilters()">
+        </div>
+        <button class="btn" style="background: #334155; color: #fff;" onclick="resetFilters()">Reset Video Lab</button>
+      </div>
+
+      <!-- Audio Studio Panel -->
+      <div id="tab-audio" class="tab-panel">
+        <div class="control-group">
+          <label>Volume Boost (Gain)</label>
+          <input type="range" id="audioGain" min="1" max="5" step="0.1" value="1" oninput="updateAudioGain(this.value)">
+        </div>
+        <p style="font-size: 0.75rem; color: var(--text-muted);">
+          Supports dynamic Web Audio API amplification for quiet IPTV audio tracks.
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const video = document.getElementById('nexusVideo');
+    let hls = new Hls();
+
+    // Tab Switching System
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+      
+      event.target.classList.add('active');
+      document.getElementById(`tab-${tabId}`).classList.add('active');
+    }
+
+    // IPTV / HLS Stream Engine
+    function playStream(url) {
+      if (Hls.isSupported()) {
+        hls.destroy();
+        hls = new Hls();
+        hls.loadSource(url);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = url;
+        video.play();
+      }
+    }
+
+    function loadM3U() {
+      const url = document.getElementById('m3uUrl').value.trim();
+      if (!url) return;
+
+      if (url.endsWith('.m3u8') || url.includes('.m3u8')) {
+        playStream(url);
+      } else {
+        fetch(url)
+          .then(res => res.text())
+          .then(data => parseM3U(data))
+          .catch(err => alert("Error loading playlist. Ensure CORS is enabled on provider URL."));
+      }
+    }
+
+    function parseM3U(content) {
+      const lines = content.split('\n');
+      const channels = [];
+      let currentChannel = null;
+
+      lines.forEach(line => {
+        line = line.trim();
+        if (line.startsWith('#EXTINF:')) {
+          const name = line.split(',')[1] || "Unknown Channel";
+          currentChannel = { name };
+        } else if (line.length > 0 && !line.startsWith('#')) {
+          if (currentChannel) {
+            currentChannel.url = line;
+            channels.push(currentChannel);
+            currentChannel = null;
+          }
+        }
+      });
+
+      renderChannelList(channels);
+    }
+
+    function renderChannelList(channels) {
+      const listContainer = document.getElementById('channelList');
+      listContainer.innerHTML = '';
+      
+      if(channels.length === 0) {
+        listContainer.innerHTML = '<div class="channel-item">No valid channels found.</div>';
+        return;
+      }
+
+      channels.forEach(ch => {
+        const item = document.createElement('div');
+        item.className = 'channel-item';
+        item.innerHTML = `<span>${ch.name}</span> <span>▶</span>`;
+        item.onclick = () => playStream(ch.url);
+        listContainer.appendChild(item);
+      });
+    }
+
+    // Video Lab Color Grading Engine
+    function updateFilters() {
+      const b = document.getElementById('slider-brightness').value;
+      const c = document.getElementById('slider-contrast').value;
+      const s = document.getElementById('slider-saturate').value;
+      const h = document.getElementById('slider-hue').value;
+
+      document.getElementById('val-brightness').innerText = `${b}%`;
+      document.getElementById('val-contrast').innerText = `${c}%`;
+      document.getElementById('val-saturate').innerText = `${s}%`;
+      document.getElementById('val-hue').innerText = `${h}deg`;
+
+      video.style.filter = `brightness(${b}%) contrast(${c}%) saturate(${s}%) hue-rotate(${h}deg)`;
+    }
+
+    function resetFilters() {
+      document.getElementById('slider-brightness').value = 100;
+      document.getElementById('slider-contrast').value = 100;
+      document.getElementById('slider-saturate').value = 100;
+      document.getElementById('slider-hue').value = 0;
+      updateFilters();
+    }
+
+    // Web Audio API Engine Setup
+    let audioCtx, gainNode, source;
+    function initAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        source = audioCtx.createMediaElementSource(video);
+        gainNode = audioCtx.createGain();
+        source.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+      }
+    }
+
+    function updateAudioGain(val) {
+      initAudioContext();
+      if (gainNode) {
+        gainNode.gain.value = val;
+      }
+    }
+
+    // Auto-resume audio context on user action
+    video.addEventListener('play', () => {
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    });
+  </script>
+</body>
+</html>
