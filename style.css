@@ -682,4 +682,3 @@ input:checked + .slider.round:before { transform: translateX(16px); background-c
 .btn-text-reset { background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.75rem; }
 .btn-text-reset:hover { color: var(--danger); }
 .card-desc { font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px; }
-
