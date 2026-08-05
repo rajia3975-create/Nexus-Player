@@ -1,5 +1,5 @@
 /* ==========================================================================
-   NEXUS PLAYER - CORE SYSTEM STYLESHEET (PART 2)
+   NEXUS PLAYER - CORE SYSTEM STYLESHEET
    Theme: True AMOLED Dark (#000000) & Glassmorphism
    ========================================================================== */
 
@@ -138,13 +138,19 @@ body.amoled-theme {
     cursor: pointer;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
+    transition: filter 0.2s ease;
+}
+
+.btn-primary-small:hover, .btn-warning:hover, .btn-danger:hover {
+    filter: brightness(1.15);
 }
 
 .btn-primary-small { background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan)); color: #000; }
 .btn-warning { background: var(--warning); color: #000; }
 .btn-danger { background: var(--danger); color: #fff; }
-.block-btn { display: block; text-align: center; }
+.block-btn { display: block; text-align: center; width: 100%; cursor: pointer; }
 
 .nexus-select, .nexus-input {
     background: var(--bg-card);
@@ -248,6 +254,15 @@ body.amoled-theme {
     pointer-events: none;
 }
 
+.processing-canvas, .visualizer-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
 /* Subtitle Render Layer */
 .subtitle-overlay {
     position: absolute;
@@ -264,6 +279,32 @@ body.amoled-theme {
     padding: 4px 12px;
     border-radius: 4px;
     text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+}
+
+/* Gesture Surface */
+.gesture-surface {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: calc(100% - 80px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    pointer-events: auto;
+}
+
+.gesture-feedback {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 30px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+    font-size: 1rem;
 }
 
 /* Telemetry HUD Overlay */
@@ -326,6 +367,20 @@ body.amoled-theme {
     gap: 12px;
 }
 
+.controls-center {
+    flex: 1;
+    text-align: center;
+    overflow: hidden;
+    padding: 0 16px;
+}
+
+.media-title-marquee {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
 .volume-control-group {
     display: flex;
     align-items: center;
@@ -373,6 +428,12 @@ body.amoled-theme {
 
 .drawer-header h3 { font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
 
+.drawer-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .drawer-body {
     flex: 1;
     overflow-y: auto;
@@ -406,11 +467,188 @@ body.amoled-theme {
     font-size: 0.8rem;
 }
 
+.slider-row label {
+    display: flex;
+    justify-content: space-between;
+    color: var(--text-secondary);
+}
+
 .input-with-button {
     display: flex;
     gap: 8px;
 }
 
+.input-with-button input {
+    flex: 1;
+    background: var(--bg-surface);
+    border: 1px solid var(--glass-border);
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 6px;
+    outline: none;
+    font-size: 0.8rem;
+}
+
+/* UI Elements: Profile Grid & Switches */
+.profile-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.btn-profile {
+    background: var(--bg-surface);
+    border: 1px solid var(--glass-border);
+    color: var(--text-secondary);
+    padding: 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-profile.active {
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+    background: rgba(0, 242, 254, 0.05);
+}
+
+.toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+}
+
+.nexus-switch {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 20px;
+}
+
+.nexus-switch input { opacity: 0; width: 0; height: 0; }
+
+.slider.round {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--glass-border);
+    transition: .3s;
+    border-radius: 20px;
+}
+
+.slider.round:before {
+    position: absolute;
+    content: "";
+    height: 12px;
+    width: 12px;
+    left: 3px;
+    bottom: 3px;
+    background-color: var(--text-secondary);
+    transition: .3s;
+    border-radius: 50%;
+}
+
+input:checked + .slider.round { background-color: var(--accent-cyan); }
+input:checked + .slider.round:before { transform: translateX(16px); background-color: #000; }
+
+/* Equalizer Bars */
+.eq-band-container {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    height: 120px;
+    padding-top: 10px;
+}
+
+.eq-slider-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    height: 100%;
+}
+
+.eq-slider-col input[type=range] {
+    writing-mode: bt-lr;
+    -webkit-appearance: slider-vertical;
+    width: 8px;
+    height: 80px;
+}
+
+/* Stepper Controls */
+.stepper-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+}
+
+.btn-icon-step {
+    background: var(--bg-surface);
+    border: 1px solid var(--glass-border);
+    color: var(--text-primary);
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+/* AI Chat Interface */
+.chat-drawer-body {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.chat-messages-container {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.chat-bubble {
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    max-width: 85%;
+}
+
+.ai-bubble {
+    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    align-self: flex-start;
+    color: var(--text-primary);
+}
+
+.chat-input-wrapper {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.chat-input-wrapper input {
+    flex: 1;
+    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 6px;
+    outline: none;
+}
+
+/* Modals */
 .nexus-modal {
     position: fixed;
     top: 50%;
@@ -433,8 +671,15 @@ body.amoled-theme {
 
 .modal-body { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
 
+.button-row-duo {
+    display: flex;
+    gap: 10px;
+}
+
+/* Utility Classes */
 .hidden { display: none !important; }
 .margin-top-10 { margin-top: 10px; }
 .btn-text-reset { background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.75rem; }
 .btn-text-reset:hover { color: var(--danger); }
+.card-desc { font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px; }
 
